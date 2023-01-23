@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{916CB420-54D5-4CCB-8918-4D2CEE46BF92}</ProjectGuid>
+    <ProjectGuid>{E4E618DB-DDCC-4BE2-9A58-ECFB3CE64E36}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>APIClient</RootNamespace>
-    <AssemblyName>APIClient</AssemblyName>
+    <RootNamespace>GuiasEmpacadora</RootNamespace>
+    <AssemblyName>GuiasEmpacadora</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -43,20 +46,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Initial.cs" />
+    <Compile Include="ConnectEndpoints.cs" />
+    <Compile Include="Endpoint\EndpointGetInfoGuias.cs" />
+    <Compile Include="Model\InfoGuia.cs" />
+    <Compile Include="Init.cs" />
+    <Compile Include="Model\ResponseJWT.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AQ1\AQ1.csproj">
-      <Project>{CDD7B807-25C0-4A55-9F03-C47551DBCFA7}</Project>
-      <Name>AQ1</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GuiasEmpacadora\GuiasEmpacadora.csproj">
-      <Project>{e4e618db-ddcc-4be2-9a58-ecfb3ce64e36}</Project>
-      <Name>GuiasEmpacadora</Name>
+    <ProjectReference Include="..\CommonUtils\CommonUtils.csproj">
+      <Project>{FFD03BE7-B6C7-49D0-98F6-B5E0C72CB969}</Project>
+      <Name>CommonUtils</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

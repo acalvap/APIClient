@@ -40,7 +40,7 @@ namespace ApiClient.AQ1
             URI Uri = new URI(Host, Path);
 
             /** Login JWT */
-            Response TokenZone = new JWT(Uri.Get()).Login(Username, Password);
+            Response TokenZone = new JWT(Uri.Get()).Login<Response>(Username, Password);
 
             /** Zones */
             List<Zone> Zones = new EndpointZone(Uri.Get()).Connect(TokenZone.access);
@@ -69,7 +69,7 @@ namespace ApiClient.AQ1
                 temperatureWaterSaved = false;
 
                 /** Login JWT */
-                Response Token = new JWT(Uri.Get()).Login(Username, Password);
+                Response Token = new JWT(Uri.Get()).Login<Response>(Username, Password);
 
                 /** Hourly */
                 DateTime StartHourly = new DateTime(MetricDay.Year, MetricDay.Month, MetricDay.Day, 00, 00, 01);
@@ -115,7 +115,7 @@ namespace ApiClient.AQ1
             ConnectDB.BulkCopy<MetricByZone>("AmountFedByZone", metricsAmountFedBD);
             this.amountFedSaved = true;
 
-            foreach (ZoneMetric zone in temperatureWaterALL)
+            foreach (ZoneMetric zone in dissolveOxygenALL)
                 foreach (Metric metric in zone.metric)
                     metricsDissolveOxygenBD.Add(new MetricByZone
                     {

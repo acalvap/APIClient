@@ -12,11 +12,15 @@ namespace APIClient.CommonUtils.Resources
         {
             this.URI = URI + API_CALL;
         }
-        public Response Login(string username, string password)
+        public JWT(string URI, string API_CALL)
+        {
+            this.URI = URI + API_CALL;
+        }
+        public T Login<T>(string username, string password)
         {
             Request request = new Request() { username = username, password = password };
-            Response response = JsonConvert.DeserializeObject<Response>(ConnectRest.POST<String>(this.URI, request));
-            return response;
+            object response = JsonConvert.DeserializeObject<T>(ConnectRest.POST<String>(this.URI, request));
+            return (T) response;
         }
     }
 

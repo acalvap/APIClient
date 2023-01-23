@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Reflection;
 
 namespace APIClient.CommonUtils.Services
@@ -10,7 +11,7 @@ namespace APIClient.CommonUtils.Services
         private static SqlConnection Connection;
 
         private static string StringConnectionWindowsAuthentication(string Host, string Database) => "Server=" + Host + "; Database=" + Database + "; Integrated Security=True;";
-        private static string StringConnectionSqlServerAuthentication(string Host, string Database, string Username, string Password) => "Server=" + Host + "; Database=" + Database + "; Username=" + Username + "; Password=" + Password + ";";
+        private static string StringConnectionSqlServerAuthentication(string Host, string Database, string Username, string Password) => "Server=" + Host + "; Database=" + Database + "; User Id=" + Username + "; Password=" + Password + ";";
 
         public static void Connect(string Host, string Database, string Username, string Password)
         {
@@ -32,9 +33,16 @@ namespace APIClient.CommonUtils.Services
             bulkCopy.DestinationTableName = TableName;
             Connection.Open();
             DataTable dt = ToDataTable(List);
+
+            foreach (DataColumn column in dt.Columns)
+            {
+                bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+            }
+
             bulkCopy.WriteToServer(dt);
             Connection.Close();
         }
+ 
 
         private static DataTable ToDataTable<T>(List<T> items)
         {
@@ -44,7 +52,7 @@ namespace APIClient.CommonUtils.Services
             foreach (PropertyInfo prop in Props)
             {
                 //Setting column names as Property names
-                dataTable.Columns.Add(prop.Name);
+                dataTable.Columns.Add(prop.Name, prop.PropertyType);
             }
             foreach (T item in items)
             {
