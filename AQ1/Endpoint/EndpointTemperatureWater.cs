@@ -21,7 +21,7 @@ namespace APICliente.AQ1.EndPoint
             ConnectRest.JWT = JWT;
             string PStart = nameof(Start).ToLower() + "=" + Start.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
             string PEnd = nameof(End).ToLower() + "=" + End.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-            List<ZoneMetric> ZonesMetrics = JsonConvert.DeserializeObject<List<ZoneMetric>>(ConnectRest.GET<string>(this.URI, PStart, PEnd));
+            List<ZoneMetric> ZonesMetrics = JsonConvert.DeserializeObject<List<ZoneMetric>>(ConnectRest.GET<string>(this.URI, 0, PStart, PEnd));
 
             return ZonesMetrics;
         }

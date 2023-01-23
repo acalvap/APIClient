@@ -21,10 +21,10 @@ namespace APIClient.CommonUtils.Services
             return (T)httpClient.GetAsync<T>(URI).Result;
         }
 
-        public static T GET<T>(string URI, params string[] parameters)
+        public static T GET<T>(string URI, int separator, params string[] parameters)
         {
             HttpClient httpClient = new HttpClient(JWT);
-            return (T)httpClient.GetAsync<T>(URI, parameters).Result;
+            return (T)httpClient.GetAsync<T>(URI, separator, parameters).Result;
         }
         #endregion
     }

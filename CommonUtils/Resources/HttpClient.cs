@@ -61,9 +61,12 @@ namespace APIClient.CommonUtils.Resources
                 PrintErrorMessage();
             return returnResult<T>();
         }
-        public async Task<T> GetAsync<T>(string A_0, params string[] A_1)
+        public async Task<T> GetAsync<T>(string A_0, int A_1 = 0, params string[] A_2)
         {
-            E(await B().GetAsync(A_0 + "?" + string.Join("&", A_1)));
+            if (A_1==0)
+                E(await B().GetAsync(A_0 + "?" + string.Join("&", A_2)));
+            else
+                E(await B().GetAsync(A_0 + "/" + string.Join("/", A_2)));
             if (!F().IsSuccessStatusCode)
                 PrintErrorMessage();
             return returnResult<T>();
