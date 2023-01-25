@@ -63,7 +63,7 @@ namespace GuiasEmpacadora
             List<InfoGuia> infoGuias = new EndpointGetInfoGuias(Uri.Get()).Connect(TokenZone.token, StartHourly, EndHourly);
             this.infoGuiasDownloaded = true;
             Console.WriteLine($"Downloading {infoGuias.Count} regisros |  Max Id {infoGuias.Max(x=>x.co_guia)}  | Fecha download " + ProcessDayProgram.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) + " ...");
-            ConnectDB.BulkCopy<InfoGuia>("InfoGuia", infoGuias);
+            ConnectDB.BulkCopyWithIdentity<InfoGuia>("InfoGuia", infoGuias);
             this.infoGuiasSaved = true;
 
             Console.WriteLine("End ===============> " + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));

@@ -31,6 +31,7 @@ namespace APIClient.CommonUtils.Resources
         public HttpClient(string A_0, object A_1)
         {
             A(new System.Net.Http.HttpClient());
+            B().Timeout = TimeSpan.FromSeconds(600);
             C(new System.Net.Http.StringContent(JsonConvert.SerializeObject(A_1), Encoding.UTF8, HttpClient.MEDIA_TYPE_APPLICATION_JSON));
             D().Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(HttpClient.MEDIA_TYPE_APPLICATION_JSON);
             if (A_0 != null)
@@ -39,6 +40,7 @@ namespace APIClient.CommonUtils.Resources
         public HttpClient(string A_0)
         {
             A(new System.Net.Http.HttpClient());
+            B().Timeout = TimeSpan.FromSeconds(600);
             B().DefaultRequestHeaders.Add("Accept", HttpClient.MEDIA_TYPE_APPLICATION_JSON);
             if (A_0 != null)
                 B().DefaultRequestHeaders.Add("Authorization", HttpClient.HEADERS_BEARER + A_0);
@@ -63,11 +65,13 @@ namespace APIClient.CommonUtils.Resources
         }
         public async Task<T> GetAsync<T>(string A_0, int A_1 = 0, params string[] A_2)
         {
-            if (A_1==0)
+            if (A_1 == 0)
                 E(await B().GetAsync(A_0 + "?" + string.Join("&", A_2)));
             else
                 E(await B().GetAsync(A_0 + "/" + string.Join("/", A_2)));
-            if (!F().IsSuccessStatusCode)
+            if (F().StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                throw new TimeoutException();
+            else if (!F().IsSuccessStatusCode)
                 PrintErrorMessage();
             return returnResult<T>();
         }

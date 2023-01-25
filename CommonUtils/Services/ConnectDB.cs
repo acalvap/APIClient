@@ -34,6 +34,23 @@ namespace APIClient.CommonUtils.Services
             Connection.Open();
             DataTable dt = ToDataTable(List);
 
+            bulkCopy.WriteToServer(dt);
+            Connection.Close();
+        }
+
+        public static void BulkCopyWithIdentity<T>(string TableName, List<T> List)
+        {
+            SqlBulkCopy bulkCopy = new SqlBulkCopy(
+                    Connection,
+                    SqlBulkCopyOptions.TableLock |
+                    SqlBulkCopyOptions.FireTriggers |
+                    SqlBulkCopyOptions.UseInternalTransaction,
+                    null
+                    );
+            bulkCopy.DestinationTableName = TableName;
+            Connection.Open();
+            DataTable dt = ToDataTableWithIdentity(List);
+
             foreach (DataColumn column in dt.Columns)
             {
                 bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
@@ -42,9 +59,32 @@ namespace APIClient.CommonUtils.Services
             bulkCopy.WriteToServer(dt);
             Connection.Close();
         }
- 
 
         private static DataTable ToDataTable<T>(List<T> items)
+        {
+            DataTable dataTable = new DataTable(typeof(T).Name);
+            //Get all the properties
+            PropertyInfo[] Props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (PropertyInfo prop in Props)
+            {
+                //Setting column names as Property names
+                dataTable.Columns.Add(prop.Name);
+            }
+            foreach (T item in items)
+            {
+                var values = new object[Props.Length];
+                for (int i = 0; i < Props.Length; i++)
+                {
+                    //inserting property values to datatable rows
+                    values[i] = Props[i].GetValue(item, null);
+                }
+                dataTable.Rows.Add(values);
+            }
+            //put a breakpoint here and check datatable
+            return dataTable;
+        }
+
+        private static DataTable ToDataTableWithIdentity<T>(List<T> items)
         {
             DataTable dataTable = new DataTable(typeof(T).Name);
             //Get all the properties
