@@ -21,6 +21,11 @@ namespace APIClient.CommonUtils.Services
                 Connection = new SqlConnection(StringConnectionSqlServerAuthentication(Host, Database, Username, Password));
         }
 
+        public static void Close()
+        {
+            Connection.Close();
+        }
+
         public static void BulkCopy<T>(string TableName, List<T> List)
         {
             SqlBulkCopy bulkCopy = new SqlBulkCopy(

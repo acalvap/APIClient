@@ -29,86 +29,37 @@ namespace ApiClient.AQ1
         }
         public void Connect(string Path, string Username, string Password, DateTime MetricDay)
         {
-            Console.WriteLine("Start ===============> " + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
+            Console.Write("Downloading ===> [" + this.Zone + "] " + MetricDay.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
 
             /** Create Host & URI */
             Host Host = new Host(this.isSSLHostEndpoint, null, null, this.HostEndpoint);
             URI Uri = new URI(Host, Path);
 
-            List<ZoneMetric> amountFedALL = new List<ZoneMetric>();
-            List<ZoneMetric> dissolveOxygenALL = new List<ZoneMetric>();
-            List<ZoneMetric> temperatureWaterALL = new List<ZoneMetric>();
 
-            amountFedDownloaded = false;
-            dissolveOxygenDownloaded = false;
-            temperatureWaterDownloaded = false;
-            amountFedSaved = false;
-            dissolveOxygenSaved = false;
-            temperatureWaterSaved = false;
-
-            /** Login JWT */
-            Response Token = new JWT(Uri.Get()).Login<Response>(Username, Password);
-
-            /** Hourly */
+            /*====================================== Hourly ======================================*/
             DateTime StartHourly = new DateTime(MetricDay.Year, MetricDay.Month, MetricDay.Day, 00, 00, 01);
-            DateTime EndHourly = new DateTime(MetricDay.Year, MetricDay.Month, MetricDay.Day + 1, 00, 00, 00);
-
-            List<ZoneMetric> AmountFedTmp = null;
+            DateTime EndHourly;
             try
             {
-                AmountFedTmp = new EndpointAmountFed(Uri.Get()).Connect(Token.access, StartHourly, EndHourly);
-            }
-            catch (TimeoutException e)
-            {
-                Token = new JWT(Uri.Get()).Login<Response>(Username, Password);
-                AmountFedTmp = new EndpointAmountFed(Uri.Get()).Connect(Token.access, StartHourly, EndHourly);
-            }
-            amountFedALL.AddRange(AmountFedTmp);
-            this.amountFedDownloaded = true;
-
-            /** 5m */
-            DateTime Start5m = new DateTime(MetricDay.Year, MetricDay.Month, MetricDay.Day, 00, 00, 01);
-            DateTime End5m = new DateTime(MetricDay.Year, MetricDay.Month, MetricDay.Day, 00, 05, 00);
-
-            while (Start5m.CompareTo(EndHourly) <= 0)
-            {
-                List<ZoneMetric> dissolveOxygenTmp = null;
                 try
                 {
-                    dissolveOxygenTmp = new EndpointDissolveOxygen(Uri.Get()).Connect(Token.access, Start5m, End5m);
+                    EndHourly = new DateTime(MetricDay.Year, MetricDay.Month, MetricDay.Day + 1, 00, 00, 00);
                 }
-                catch (TimeoutException)
+                catch
                 {
-                    Token = new JWT(Uri.Get()).Login<Response>(Username, Password);
-                    dissolveOxygenTmp = new EndpointDissolveOxygen(Uri.Get()).Connect(Token.access, Start5m, End5m);
+                    EndHourly = new DateTime(MetricDay.Year, MetricDay.Month + 1, 1, 00, 00, 00);
                 }
-                dissolveOxygenALL.AddRange(dissolveOxygenTmp);
-
-                List<ZoneMetric> temperatureWaterTmp = null;
-                try
-                {
-                    temperatureWaterTmp = new EndpointTemperatureWater(Uri.Get()).Connect(Token.access, Start5m, End5m);
-                }
-                catch (Exception e)
-                {
-                    Token = new JWT(Uri.Get()).Login<Response>(Username, Password);
-                    temperatureWaterTmp = new EndpointTemperatureWater(Uri.Get()).Connect(Token.access, Start5m, End5m);
-                }
-                temperatureWaterALL.AddRange(temperatureWaterTmp);
-
-                Start5m = Start5m.AddMinutes(5);
-                End5m = End5m.AddMinutes(5);
             }
-            this.dissolveOxygenDownloaded = true;
-            this.temperatureWaterDownloaded = true;
+            catch
+            {
+                EndHourly = new DateTime(MetricDay.Year + 1, 1, 1, 00, 00, 00);
+            }
 
-            ConnectDB.Connect(this.HostDatabase, this.DatabaseName, null, null);
+            Response tokenAmountFed = new JWT(Uri.Get()).Login<Response>(Username, Password);
+            List<ZoneMetric> amountFed = new EndpointAmountFed(Uri.Get()).Connect(tokenAmountFed.access, StartHourly, EndHourly);
 
             List<MetricByZone> metricsAmountFedBD = new List<MetricByZone>();
-            List<MetricByZone> metricsDissolveOxygenBD = new List<MetricByZone>();
-            List<MetricByZone> metricsTemperatureWaterBD = new List<MetricByZone>();
-
-            foreach (ZoneMetric temp in amountFedALL)
+            foreach (ZoneMetric temp in amountFed)
                 foreach (Metric metric in temp.metric)
                     metricsAmountFedBD.Add(new MetricByZone
                     {
@@ -116,33 +67,62 @@ namespace ApiClient.AQ1
                         time = DateTime.Parse(metric.time),
                         value = metric.value
                     });
+            ConnectDB.Connect(this.HostDatabase, this.DatabaseName, null, null);
             ConnectDB.BulkCopy<MetricByZone>("AmountFedByZone", metricsAmountFedBD);
-            this.amountFedSaved = true;
-
-            foreach (ZoneMetric zone in dissolveOxygenALL)
-                foreach (Metric metric in zone.metric)
-                    metricsDissolveOxygenBD.Add(new MetricByZone
-                    {
-                        zone = zone.zone,
-                        time = DateTime.Parse(metric.time),
-                        value = metric.value
-                    });
-            ConnectDB.BulkCopy<MetricByZone>("DissolveOxygenByZone", metricsDissolveOxygenBD);
-            this.dissolveOxygenSaved = true;
-
-            foreach (ZoneMetric zone in temperatureWaterALL)
-                foreach (Metric metric in zone.metric)
-                    metricsTemperatureWaterBD.Add(new MetricByZone
-                    {
-                        zone = zone.zone,
-                        time = DateTime.Parse(metric.time),
-                        value = metric.value
-                    });
-            ConnectDB.BulkCopy<MetricByZone>("TemperatureWaterByZone", metricsTemperatureWaterBD);
-            this.temperatureWaterSaved = true;
+            ConnectDB.Close();
+            /*========================================================================================*/
 
 
-            Console.WriteLine("End ===============> " + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
+            /*==================================== 5m ===================================*/
+            DateTime Start5m = new DateTime(MetricDay.Year, MetricDay.Month, MetricDay.Day, 00, 00, 01);
+            DateTime End5m = new DateTime(MetricDay.Year, MetricDay.Month, MetricDay.Day, 00, 05, 00);
+
+            while (Start5m.CompareTo(EndHourly) <= 0)
+            {
+                
+                //Dissolve Oxygen
+                Response tokenDissolveOxygen = new JWT(Uri.Get()).Login<Response>(Username, Password);
+                List<ZoneMetric> dissolveOxygen = new EndpointDissolveOxygen(Uri.Get()).Connect(tokenDissolveOxygen.access, Start5m, End5m);
+
+                List<MetricByZone> metricsDissolveOxygenBD = new List<MetricByZone>();
+                foreach (ZoneMetric zone in dissolveOxygen)
+                    foreach (Metric metric in zone.metric)
+                        metricsDissolveOxygenBD.Add(new MetricByZone
+                        {
+                            zone = zone.zone,
+                            time = DateTime.Parse(metric.time),
+                            value = metric.value
+                        });
+                ConnectDB.Connect(this.HostDatabase, this.DatabaseName, null, null);
+                ConnectDB.BulkCopy<MetricByZone>("DissolveOxygenByZone", metricsDissolveOxygenBD);
+                ConnectDB.Close();
+
+
+                //Temperature Water
+                Response tokenTemperatureWater = new JWT(Uri.Get()).Login<Response>(Username, Password);
+                List<ZoneMetric> temperatureWater = new EndpointTemperatureWater(Uri.Get()).Connect(tokenTemperatureWater.access, Start5m, End5m);
+
+                List<MetricByZone> metricsTemperatureWaterBD = new List<MetricByZone>();
+                foreach (ZoneMetric zone in temperatureWater)
+                    foreach (Metric metric in zone.metric)
+                        metricsTemperatureWaterBD.Add(new MetricByZone
+                        {
+                            zone = zone.zone,
+                            time = DateTime.Parse(metric.time),
+                            value = metric.value
+                        });
+                ConnectDB.Connect(this.HostDatabase, this.DatabaseName, null, null);
+                ConnectDB.BulkCopy<MetricByZone>("TemperatureWaterByZone", metricsTemperatureWaterBD);
+                ConnectDB.Close();
+
+
+                Start5m = Start5m.AddMinutes(5);
+                End5m = End5m.AddMinutes(5);
+
+            }
+            /*========================================================================================*/
+
+            Console.WriteLine(" <=== end");
         }
 
         public void DownloadedZones(string Path, string Username, string Password)

@@ -31,7 +31,7 @@ namespace APIClient.CommonUtils.Resources
         public HttpClient(string A_0, object A_1)
         {
             A(new System.Net.Http.HttpClient());
-            B().Timeout = TimeSpan.FromSeconds(600);
+            B().Timeout = TimeSpan.FromSeconds(500);
             C(new System.Net.Http.StringContent(JsonConvert.SerializeObject(A_1), Encoding.UTF8, HttpClient.MEDIA_TYPE_APPLICATION_JSON));
             D().Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(HttpClient.MEDIA_TYPE_APPLICATION_JSON);
             if (A_0 != null)
@@ -40,7 +40,7 @@ namespace APIClient.CommonUtils.Resources
         public HttpClient(string A_0)
         {
             A(new System.Net.Http.HttpClient());
-            B().Timeout = TimeSpan.FromSeconds(600);
+            B().Timeout = TimeSpan.FromSeconds(500);
             B().DefaultRequestHeaders.Add("Accept", HttpClient.MEDIA_TYPE_APPLICATION_JSON);
             if (A_0 != null)
                 B().DefaultRequestHeaders.Add("Authorization", HttpClient.HEADERS_BEARER + A_0);
